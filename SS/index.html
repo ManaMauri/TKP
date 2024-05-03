@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chart.js Drag Data Points Plugin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-dragdata@2.2.0"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #headerTitle {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px;
+            text-align: center;
+        }
+
+        #totalLabel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        canvas {
+            background-color: #eee;
+            margin-top: 50px;
+            height: 80vh;
+            width: 90%;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<div id="headerTitle">Te Kapehu 2.0</div>
+<div id="totalLabel">Total: 0</div>
+
+<canvas id="chartJSContainer"></canvas>
+<button onclick="exportChart()">Export Chart and Data</button>
+
+<script>
+    const labels = ['Polution & Waste', 'Landuse', 'Energy', 'Safety & Security', 'Social Connections', 'Cultural Identity', 'Subjective Wellbeing', 'Mātauranga Māori', 'Team Diversity', 'The overlap', 'Shop Local', 'Value Proposition', 'Emissions', 'Te Mauri o te Wai', 'Biodiversity'];
+    const dataValues = [-1,-1,-1,-1,-1,0,0,0,0,0,0,0,0,0,0];
+
+    function getColor(value) {
+        if (value >= -2 && value < -0.9) return '#DAD7CD';
+        if (value >= -0.9 && value < 0.1) return '#A3B18A';
+        if (value >= 0.1 && value < 1.1) return '#588157';
+        if (value >= 1.1 && value <= 2) return '#3A5A40';
+    }
+
+    function updateColors() {
+        return dataValues.map(value => getColor(value));
+    }
+
+    function updateTotal() {
+        const total = dataValues.reduce((acc, curr) => acc + curr, 0);
+        document.getElementById('totalLabel').innerText = `Total: ${total.toFixed(2)}`;
+    }
+
+    const options = {
+        type: 'polarArea',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'score',
+                data: dataValues,
+                backgroundColor: updateColors(),
+                borderColor: updateColors(),
+                borderWidth: 5,
+                pointHitRadius: 25
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    display: false
+                },
+                dragData: {
+                    round: 1,
+                    showTooltip: true,
+                    onDragStart: function(e) {},
+                    onDrag: function(e, datasetIndex, index, value) {              
+                        e.target.style.cursor = 'grabbing'
+                    },
+                    onDragEnd: function(e, datasetIndex, index, value) {
+                        e.target.style.cursor = 'default';
+                        options.data.datasets[0].backgroundColor = updateColors();
+                        options.data.datasets[0].borderColor = updateColors();
+                        chart.update();
+                        updateTotal();
+                    },
+                }
+            },
+            scales: {
+                r: {
+                    max: 2,
+                    min: -2,
+                    stepSize: 1,
+                    ticks: {
+                        backdropColor: 'rgba(255, 255, 255, 0.75)',
+                        color: '#333',
+                        font: {
+                            size: 12,
+                            weight: 'bold',
+                            family: 'Roboto, sans-serif'
+                        },
+                        z: 1,
+                        callback: function(value, index, values) {
+                            if (Number.isInteger(value)) {
+                                return value;
+                            }
+                        }
+                    },
+                    grid: {
+                        color: function(context) {
+                            return context.tick.value === 0 ? 'rgba(0, 0, 0, 0.1)' : 'rgba(0, 0, 0, 0.5)';
+                        },
+                        z: 1
+                    },
+                    angleLines: {
+                        display: true
+                    },
+                    pointLabels: {
+                        display: true,
+                        font: {
+                            size: 14,
+                            weight: 'bold',
+                            family: 'Roboto, sans-serif',
+                            color: '#333'
+                        },
+                        padding: 20,
+                        offset: 20,
+                    }
+                }
+            }
+        }
+    }
+
+    const ctx = document.getElementById('chartJSContainer').getContext('2d');
+    const chart = new Chart(ctx, options);
+    updateTotal();
+
+    function exportChart() {
+        // Export chart as PNG
+        const canvas = document.getElementById('chartJSContainer');
+        const linkImage = document.createElement('a');
+        linkImage.href = canvas.toDataURL('image/png');
+        linkImage.download = 'chart.png';
+        linkImage.click();
+
+        // Export data as CSV
+        const csvContent = [];
+        csvContent.push("Label,Value");
+        labels.forEach((label, index) => {
+            csvContent.push(label + "," + dataValues[index]);
+        });
+        const blob = new Blob([csvContent.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const linkCSV = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        linkCSV.setAttribute('href', url);
+        linkCSV.setAttribute('download', 'chart_data.csv');
+        linkCSV.style.visibility = 'hidden';
+        document.body.appendChild(linkCSV);
+        linkCSV.click();
+        document.body.removeChild(linkCSV);
+    }
+</script>
+
+</body>
+</html>
