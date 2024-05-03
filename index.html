@@ -34,8 +34,8 @@
         canvas {
             background-color: #eee;
             margin-top: 50px;
-            height: 80vh;
-            width: 90%;
+            height: calc(100vh - 100px); /* Adjusted for better scaling */
+            width: 100vw; /* Adjusted to use viewport width for full scaling */
             display: block;
             margin-left: auto;
             margin-right: auto;
@@ -99,6 +99,7 @@
             }]
         },
         options: {
+            maintainAspectRatio: false, /* This ensures the chart resizes properly */
             plugins: {
                 legend: {
                     display: false
