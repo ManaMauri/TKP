@@ -12,8 +12,10 @@
             margin: 0;
             padding: 0;
             font-family: 'Roboto', sans-serif;
-            height: 100%;
-            overflow: hidden;
+            height: 100%; /* Ensure full height */
+            overflow: hidden; /* Prevent scrolling */
+            display: flex; /* Use flex layout */
+            flex-direction: column; /* Stack children vertically */
         }
 
         #headerTitle {
@@ -31,25 +33,29 @@
             font-weight: bold;
         }
 
+        #container {
+            flex: 1; /* Take up all available space */
+            display: flex; /* Use flex layout */
+            flex-direction: column; /* Stack children vertically */
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
+            padding: 20px; /* Add some padding */
+        }
+
         canvas {
             background-color: #eee;
-            margin-top: 50px;
-            height: calc(100vh - 100px); /* Adjusted for better scaling */
-            width: 100vw; /* Adjusted to use viewport width for full scaling */
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
+            height: 100%; /* Full height of the container */
+            width: 90%; /* Some width */
         }
 
         button {
-            display: block;
-            margin: 20px auto;
             padding: 10px 20px;
             background-color: #4CAF50;
-            color: #fff;
+            color: white;
             border: none;
             cursor: pointer;
             font-size: 16px;
+            margin-top: 20px; /* Add margin to the top of the button */
         }
 
         button:hover {
@@ -61,8 +67,9 @@
 
 <div id="headerTitle">Te Kapehu 2.0</div>
 <div id="totalLabel">Total: 0</div>
-
-<canvas id="chartJSContainer"></canvas>
+<div id="container">
+    <canvas id="chartJSContainer"></canvas>
+</div>
 <button onclick="exportChart()">Export Chart and Data</button>
 
 <script>
@@ -99,7 +106,8 @@
             }]
         },
         options: {
-            maintainAspectRatio: false, /* This ensures the chart resizes properly */
+            maintainAspectRatio: false,
+            responsive: true,
             plugins: {
                 legend: {
                     display: false
@@ -108,8 +116,8 @@
                     round: 1,
                     showTooltip: true,
                     onDragStart: function(e) {},
-                    onDrag: function(e, datasetIndex, index, value) {              
-                        e.target.style.cursor = 'grabbing'
+                    onDrag: function(e, datasetIndex, index, value) {
+                        e.target.style.cursor = 'grabbing';
                     },
                     onDragEnd: function(e, datasetIndex, index, value) {
                         e.target.style.cursor = 'default';
@@ -163,7 +171,7 @@
                 }
             }
         }
-    }
+    };
 
     const ctx = document.getElementById('chartJSContainer').getContext('2d');
     const chart = new Chart(ctx, options);
